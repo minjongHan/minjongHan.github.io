@@ -115,33 +115,37 @@ collections:
     sort_by: order
 
 
-defaults:
-  -
-    scope:
-      path: ''          # An empty string here means all files in the project
+defaults: 
+  # _posts
+  - scope:
+      path: ""
       type: posts
     values:
-      layout: post
-      comments: true    # Enable comments in posts.
-      toc: true         # Display TOC column in posts.
-      breadcrumb:
-        -
-          label: Posts
-          url: /
-  -
-    scope:
+      layout: single
+      author_profile: true
+      read_time: true
+      comments: true
+      share: true
+      related: true
+  
+  # _pages
+  - scope:
+      path: "_pages"
+      type: pages
+    values:
+      layout: single
+      author_profile: true
+  - scope:
       path: _drafts
     values:
       comments: false
-  -
-    scope:
+  - scope:
       path: index.html
     values:
       breadcrumb:
         -
           label: Posts
-  -
-    scope:
+  - scope:
       path: tags
     values:
       breadcrumb:
