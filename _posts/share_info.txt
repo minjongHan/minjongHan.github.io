@@ -1,1 +1,6 @@
-HTTP://IMAGE.SERVE.CO.KR/partner_corner_erealty/watermark/202010/wm_637383547262131323_13803325_202049164022.jpg
+* 이미지 서버 구축 작업
+ - S3 -> CDN 매핑 구인 구직 이미지 서버 사용(window server)
+ - http://uimg.findall.co.kr 도메인 사용 필요(폴더 생성 및 구조 협의 필요)
+ - 기존 S3 폴더 구조 파악 필요 -> 동일한 구조로 findall에 생성
+ - DB 데이터 마이그레이션(tc_cmmn_file_detail 등) 및 파일 데이터 마이그레이션(용량 파악)
+ - 플랫폼 소스 변경
