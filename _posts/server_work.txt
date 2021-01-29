@@ -1,0 +1,182 @@
+****  OS버젼 CentOS 7
+* python3 yum 설치
+1. 파이썬 다운르드 
+2. opt 폴더로 이동
+3. ./configure 실행
+4. PATH 오류 발생시 yum install gcc 설치me
+5. make 
+6. make install 실행
+7. zlib 오류 발생시 yum -y install zlib-devel
+
+
+--파이션 alais 설정 .bashrc
+alias python="/usr/local/bin/python3.6"
+
+
+* PIP 설치(패키지 관리 프로그램)
+1. 다운받기  wget https://bootstrap.pypa.io/get-pip.py
+2. python3 get-pip.py 실행
+3. distutils.util 오류 발생시 yum install python3-distutils 설치
+4. sudo -E python get-pip.py
+
+** 추가적으로 SSL 오류 발생시 travelc.tistory.com/28 참고 
+ - openssl openssl-devel 패키지 설치 및 python3.6/Modules/Setup.dist 파일 수정하고 재빌드 해서 해결
+
+
+* Apache 설치
+1. yum -y update
+2. yum -y install httpd
+3. 버젼 확인 httpd -v
+4. 서비스 시작 service httpd start  혹시 자동 시작 systemctl enable httpd.service
+5. 동작 확인 ps -ef | grep httpd
+6, 방확벽 포트 열어주기 firewall-cmd --zone=public --add-port=80/tcp --permanent
+                firewall-cmd --reload
+				
+* Apache & tomcat 연결
+ - mod_jk 사용
+   1. tomcat-connectors 다룬로드 (AWS일시 scp -i aws_keypair.pem tomcat-connectors-1.2.xx-src.tar.gz ec2-usr@(Pubilc IP):~/)
+   2. 압축 풀기
+   3. 혹시 gcc 없으면 sudo yum install gcc
+   4. sudo yum install httpd-devel    <-- mod_jk빌드하기 위해 필요 설치후 apxs 생성
+   5. which apxs     <-- apxs 설치 위치 확인
+   6. ./configure --with-apxs=/usr/bin/apxs 
+   7. make
+   9. sudo make install 
+   10. mod_jk.so 파일 생성 확인 
+   11. httpd/conf/httpd.conf 수정
+   12. httpd/conf/workers.properties 파일 생성 서비스 숫자대로
+   13. conf.d/httpd-vhost.conf 생성
+   14. conf.d/mod_jk.conf 파일 생성
+   15. tomcat에 server.xml 파일에서 ajp 연결 수정
+   16. CentOS의 SELinux boolean 값 오류 발생시 수정 필요
+   17. AJP연결 실패시 secretRequired="true"를 false로 수정 필요
+   
+  - mod_jk.shm errno=13 shared momory failure 에러 발생시 
+     $ chcon -u system_u -r object_r -t httpd_modules_t /etc/httpd/modules/mod_jk.so	//설정 변경
+	 $ setenforce 0 //설정 적용
+
+* logstash 설치
+ 1. root 계정으로 /etc/yum.repos.d/logstash.repo에 아래 내용 추가
+ [logstash-6.x]
+name=Elastic repository for 6.x packages
+baseurl=https://artifacts.elastic.co/packages/6.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+ 2. sudo yum install logstash
+ 3. logstash.repo 파일의 enabled=0 으로 변경
+ 4. centos 계정에 logstash 폴더 생성하고 소스 파일 저장
+ 5. 추가 - 설치 장소 : /usr/share/logstash/
+    환경 설정 - /etc/logstash
+ 6. /etc/logstash/conf.d/mysql-connector-java-5.1.31.jar 설치 필요
+
+* elasticSearch 설치
+root 권한으로 es를 실행하지 못하는 경우
+org.elasticsearch.bootstrap.StartupException: java.lang.RuntimeException: can not run elasticsearch as root
+root가 아닌 다른 계정으로 권한을 주어 elasticsearch 를 실행한다.
+# elasticsearch 사용자, 그룹 생성
+$ sudo less /etc/passwd | grep "elasticsearch"
+$ sudo less /etc/group | grep "elasticsearch"
+
+# es 사용자, 그룹 생성
+$ sudo less /etc/passwd | grep "es"
+$ sudo less /etc/group | grep "es"
+
+# elasticsearch 그룹에 es 사용자를 추가
+$ usermod -G elasticsearch es
+
+# elasticsearch 
+# /data 하위 디렉토리에 elasticsearch user 에 소유권, 실행권한 부여
+sudo chown elasticsearch:elasticsearch -R /data
+chmod -R 775 /data
+
+# /usr/share/elasticsearch* 디렉토리에 소유권, 실행권한 부여
+chown elasticsearch:elasticsearch -R /usr/share/elasticsearch/
+chown elasticsearch:elasticsearch -R /usr/share/elasticsearch_data1/
+chown elasticsearch:elasticsearch -R /usr/share/elasticsearch_data2/
+
+chmod -R 775 /usr/share/elasticsearch/
+chmod -R 775 /usr/share/elasticsearch_data1/
+chmod -R 775 /usr/share/elasticsearch_data2/
+https://stackoverflow.com/questions/40766301/run-elastic-search-as-root-user
+https://soye0n.tistory.com/168
+
+메모리 관련 이슈
+/etc/security/limits.conf 파일에 elasticsearch soft memlock unlimited elasticsearch hard memlock unlimited 내용 추가
+https://soye0n.tistory.com/170
+http://kimjmin.net/2018/01/2018-01-build-es-cluster-2/
+http://modoleesi.blogspot.com/2017/10/elastic-search.html
+
+rpm 설치 시 ES_PATH_CONF 변수 기본 설정 변경
+기본 설치 시 /etc/elasticsearch 로 설정되는데 /usr/share/elasticsearch/config 로 변경
+꼭 필요하지는 않지만 관리를 위해서 변경한 내용
+vi /usr/share/elasticsearch/bin/elasticsearch
+# ES_JVM_OPTIONS="$ES_PATH_CONF"/jvm.options 윗줄에 추가
+ES_PATH_CONF=/usr/share/elasticsearch/config
+
+----------------------------
+소스 분석
+1. 소스 리뷰 문서 참조
+2. elasticSearch가 필요할 경우(색인 필요시) "elasticIndexListener=update" 추가 필요
+3. listenerAndMethods는 미리 메모리에 참조(?)하는 형식인것 같음. 코드값에 주로 사용 context-cmmnCd.xml 참조
+
+----------------------------
+이니시스 크롬 80이상 버전 쿠키 이슈 
+Apache
+/etc/httpd/conf/httpd.conf (개발서버 기준)
+Header edit Set-Cookie ^(.*)$ $1;SameSite=None;Secure; 추가 후 재기동
+<IfModule mod_headers.c>
+    ...
+    Header edit Set-Cookie ^(.*)$ $1;SameSite=None;Secure; #추가
+</IfModule>
+# cd /etc/httpd/conf
+# vi httpd.conf
+# service httpd restart
+https://ifuwanna.tistory.com/223
+
+Tomcat
+/home/tomcat/apache-tomcat-8.5.42_1/conf/server.xml
+Context 안에 CookieProcessor 추가 후 재기동
+<Context path="" docBase="/var/www/html" debug="0">
+    ...
+    <CookieProcessor sameSiteCookies="none" />
+<Context>
+/home/tomcat/apache-tomcat-8.5.42_1/conf/web.xml
+session-config 안에 cookie-config 추가
+    <session-config>
+        ...
+	<cookie-config>
+	    <http-only>true</http-only>
+	    <secure>true</secure>
+	</cookie-config>
+    </session-config>
+https://ttallaemideul.github.io/20200223/tomcat-001
+
+--pip list 가져와서 설치
+  . 기존 서버에서 pip freeze > requirements.txt 로 목록 가져옴
+  . 신규 서버에서 pip install -r requirements.txt 로 패키지 설치
+  . pip list 로 설치된 목록 확인
+  
+-- 특정 폴더 접근 권한 문제 에러 발생(SELinux문제)
+  . lesstif.com에서 SentOS SELinux 설정 및 해제하기 참고
+
+-- SELinux 보안 정책(아파치 웹서버 디렌토리 권한 차단)
+  . sestatus로 환경 설정 확인
+  . disabled가 아닐경우 
+  . vi /etc/sysconfig/selinux 수정 -> SELINUX값을 disabled로 변경
+  . setenforce 0 으로 재부텅 없이 반영  
+  
+  
+-- 소스 추가 작업
+  . DB 경로 변경
+  . elasticSearch 경로 변경
+  . AwsS3MultiUtil.java에 @Component 주석처리
+  . 인증서 작업(mod_ssl이 없을 경우 yum install mod_ssl로 설치)
+    - /etc/httpd/conf.d/ssl.conf 설정
+	- /etc/pki/tls/certs/localhost.crt 복사 넣기
+	- /etc/pki/tls/private/localhost.key 복사 넣기
+	- /usr/libexec/httpd-ssl-pass-dialog 복사 넣기(755로 권한 변경)
+	- /etc/httpd/modules/mod_ssl.so 복사 넣기
+	- /etc/httpd/conf.modules.d/00-ssl.conf 복사 넣기
