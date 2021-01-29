@@ -1,0 +1,25 @@
+#!/bin/sh
+
+
+echo shell start `date +%Y-%m-%d`
+echo catalina.out backup start
+
+# 변수 만들기
+TOMCAT_LOG_DIR=/home/server/tomcat/logs
+DATE=`date +%Y-%m-%d`
+BACKUP_DATE=`date +%Y-%m --date '1 month ago'`
+
+# backup 폴더 만들기
+if [ ! -d $TOMCAT_LOG_DIR/log_backup/catalina.out ]
+then
+mkdir $TOMCAT_LOG_DIR/log_backup/catalina.out
+fi
+
+# backup 폴더에 복사
+cp $TOMCAT_LOG_DIR/catalina.out $TOMCAT_LOG_DIR/catalina_log_backup/3catalina.out.$BACKUP_DATE
+
+# catalina.out 초기화
+cat /dev/null > $TOMCAT_LOG_DIR/catalina.out
+
+echo catalina.out backup end
+echo shell end `date +%Y-%m-%d`
