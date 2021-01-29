@@ -1,3 +1,61 @@
 ** try ~ catch 와 throws
 - 함수내에 try ~ catch 처리와 throws로 예외 던지는 로직이 같이 있을 경우
-- catch에서의 오류 메시지 출력하고 던지기도 하는걸로 확인 
+- 오류난 catch에서 오류 메시지 출력 진행 
+- 만약 함수내에 try ~ catch 문이 없이 throws만 존재할 경우 상위단에서 처리해 주어야 함
+
+** 예시
+
+public class MyTest {
+
+    public void example2() throws Exception{
+        try{
+            throw new Exception("Test Exception");
+        }catch (Exception e){
+            System.out.println("두번째 로그" +e.getMessage());
+        }
+
+    }
+    public void example1() {
+        try{
+            example2();
+        }catch (Exception e){
+
+            System.out.println("첫번째 로그" + e.getMessage());
+        }
+    }
+
+    public static void main(String args[]){
+        MyTest my = new MyTest();
+        my.example1();
+    }
+}
+
+결과 : 두번째 로그Test Exception
+
+public class MyTest {
+
+    public void example2() throws Exception{
+      //  try{
+            throw new Exception("Test Exception");
+      //  }catch (Exception e){
+      //      System.out.println("두번째 로그" +e.getMessage());
+      //  }
+
+    }
+    public void example1() {
+        try{
+            example2();
+        }catch (Exception e){
+
+            System.out.println("첫번째 로그" + e.getMessage());
+        }
+    }
+
+    public static void main(String args[]){
+        MyTest my = new MyTest();
+        my.example1();
+    }
+}
+
+결과 : 첫번째 로그Test Exception
+
