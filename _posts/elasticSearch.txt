@@ -1,0 +1,28 @@
+* 엘라스틱 쿼리 짜기
+ - 자료 얻기 
+기본 curl -XGET
+or curl -XPOST
+
+ex) curl -XPOST http://192.168.184.203:9200/advrts_land_test/_search?
+
+- 두 조건 만족하는 쿼리
+{
+  "from": 0,
+  "size": 20,
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "locplcDong": "신사동"
+          }
+        },
+        {
+          "match": {
+            "tradeTypeNm": "매매"
+          }
+        }
+      ]
+    }
+  }
+}
