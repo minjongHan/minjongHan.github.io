@@ -1,0 +1,5 @@
+catalina.sh
+
+JAVA_HOME="/home/tomcat/java"
+JRE_HOME="/home/tomcat/java/jre"
+CATALINA_OPTS="-Xms2048m -Xmx2048m -XX:MaxPermSize=256m -Dspring.profiles.active=real,realSc"
