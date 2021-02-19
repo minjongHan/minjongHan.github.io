@@ -22,3 +22,15 @@ S3 저장된 파일의 년/월/일/ 로 용량 조회 가능한지 문의 주셨
 
 EX). image.findhouse.co.kr 버킷의 B0000001 폴더 용량 확인
 # aws s3 ls s3://image.findhouse.co.kr/uploads/B0000001/ --recursive --summarize --human-readable
+
+
+AWS Cli설치 후 (window, linux 버젼등)
+$ aws --version   ->> 버젼 확인
+$ aws configure   ->> 접속 정보 넣기 
+  Access Key ID 입력
+  Secret Access Key 입력
+  region Name 입력  ->> ap-northeast-2(서울)
+$ aws s3 ls 경로     ->> 리스트 출력
+  aws s3 ls s3://image.findhouse.co.kr/uploads
+$ aws s3 cp 경로 경로  ->> 파일 다운로드시 사용 s3일 경우 s3:// 로 경로가 시작합
+  - 일반 linux 명령어 사용 가능 cp(복사), ls(출력), sync(싱크), mb(make bucket) 
